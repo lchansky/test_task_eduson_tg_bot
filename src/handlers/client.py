@@ -79,6 +79,7 @@ async def url_received(message: Message, state: FSMContext):
 
 
 async def photo_list(callback_query: CallbackQuery, state: FSMContext):
+    await callback_query.answer()
     await state.set_state(MainFSM.photo_list_page.state)
     inline_markup = InlineKeyboardMarkup()
 
@@ -87,7 +88,10 @@ async def photo_list(callback_query: CallbackQuery, state: FSMContext):
     message_text = text.photo_list
     if photos_count == 0:
         message_text += '\n' + text.empty_page
-        await callback_query.message.edit_text(message_text, reply_markup=inline_markup)
+        try:
+            await callback_query.message.edit_text(message_text, reply_markup=inline_markup)
+        except BadRequest:
+            await callback_query.message.answer(message_text, reply_markup=inline_markup)
         await state.set_state(MainFSM.main_menu.state)
         await bot_utils.send_main_menu(callback_query.message.chat.id)
         return
@@ -110,7 +114,6 @@ async def photo_list(callback_query: CallbackQuery, state: FSMContext):
     bot_utils.add_page_buttons(inline_markup, photos_count, page)
     inline_markup.add(InlineKeyboardButton(text.main_menu_button, callback_data='main_menu'))
 
-    await callback_query.answer()
     try:
         await callback_query.message.edit_text(message_text, reply_markup=inline_markup)
     except BadRequest:
@@ -194,6 +197,7 @@ async def main_menu_from_command(message: Message, state: FSMContext):
 async def get_photos_table(callback_query: CallbackQuery, state: FSMContext):
     photos = db.get_photos(user_tg_id=callback_query.from_user.id)
     file_bytes = bot_utils.create_csv_table_bytes(photos)
+    await callback_query.answer('Таблица начала генерироваться...')
     await callback_query.message.answer_document(
         document=('table.csv', file_bytes),
         caption=text.spreadsheet_created,
