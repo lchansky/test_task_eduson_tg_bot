@@ -1,0 +1,2 @@
+class URLValidationError(ValueError):
+    pass

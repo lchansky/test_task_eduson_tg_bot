@@ -1,0 +1,4 @@
+# ENV_FILE_PATH = '.env'
+ENV_FILE_PATH = '../.env'
+
+DEFAULT_PAGE_SIZE = 10

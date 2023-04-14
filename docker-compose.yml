@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  eduson_bot:
+    restart: always
+    build: .
+    env_file:
+      - .env
+    depends_on:
+      - eduson_db
+      - eduson_redis
+    ports:
+      - "8810:8000"
+    command: python3 run.py
+
+  eduson_db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_INITDB_ARGS: "-A md5"
+    env_file:
+      - .env
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+      - ./postgres_init:/docker-entrypoint-initdb.d/
+    ports:
+      - "8811:5432"
+    container_name: eduson_db
+
+  eduson_redis:
+    image: redis
+    restart: always
+    env_file:
+      - .env
+    volumes:
+        - ./redis_data:/var/lib/redis
+    ports:
+      - "8812:6379"
+    command: redis-server ${REDIS_ARGS}
+    container_name: eduson_redis
+
+volumes:
+  postgres_data:
+  redis_data:
